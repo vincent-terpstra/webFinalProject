@@ -11,7 +11,7 @@ var departments = [];
 function readFile(file, reject){
 //    console.log('reading '+file);
     try {
-        return  JSON.parse( fs.readFileSync(path.join(__dirname, '/views/'+ file +'.json'), 'utf8'));
+        return  JSON.parse( fs.readFileSync(path.join(__dirname, '/data/'+ file +'.json'), 'utf8'));
     } catch (err){
         reject("unable to read file: "+ file);
     }
