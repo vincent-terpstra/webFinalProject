@@ -19,41 +19,34 @@ var app     = express();
 //
 app.use(express.static('public'));
 
-// Function to setup page requests
-//      inputs
-//          str : get location ex /about
-//          file: name of html file
+// Function to creates get function for HTML file
+//      file: name of html file
 //
-function createRequest(str, file){
-    app.get(str, (req, res)=>{
-        res.sendFile(path.join(__dirname, '/views/'+ file +'.html'));
-    });
+function getHTML(file){
+    return (req, res) =>{
+        res.sendFile(path.join(__dirname, '/views/'+ file +'.html'))
+    }
 }
 
-createRequest('/', 'home');
-createRequest('/about', 'about');
-
-// Function that creates an app get request
-//      inputs 
-//          str   : get location ex /managers
-//          funct : function call to data-server exported function
+// Function that creates get function for a Promise which returns JSON data
+//      funct : function call to data-server create promise
 //
-function createGet(str, funct){
-    app.get(str, 
-        (req, res)=>{
+function getJSON(makePromise){
+    return (req, res)=>{
         //call request for data then post to page
-        funct()
+        makePromise()
             //return data in form of json array
             .then((data) => {res.json( data )})
             //return error in form of json message
             .catch((err) => {res.json('{message:"'+ err +'"}');});
-        }
-    );
+    }
 }
 
-createGet('/managers',    data.getManagers);
-createGet('/employees',   data.getAllEmployees);
-createGet('/departments', data.getDepartments);
+app.get('/',            getHTML('home'));
+app.get('/about',       getHTML('about'));
+app.get('/managers',    getJSON(data.getManagers));
+app.get('/employees',   getJSON(data.getAllEmployees));
+app.get('/departments', getJSON(data.getDepartments));
 
 // Setup 404 message if page not found
 app.use((req, res) => {
@@ -66,6 +59,6 @@ data.initialize()
     .then(()=>{app.listen(HTTP_PORT, onHttpStatus)})
     .catch((err)=>{ console.log(err) });
 
-var onHttpStatus = function(){
+var onHttpStatus = ()=>{
     console.log("Express http server listening on: " + HTTP_PORT );
 };

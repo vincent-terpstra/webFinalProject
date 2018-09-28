@@ -55,21 +55,19 @@ module.exports.getAllEmployees = function(){
     return createPromise(employees);
 };
 
-
 //Function to provide the employees which are managers
 //
 module.exports.getManagers = function(){
+    //Function to select managers from list
+    //
+    function selectManagers(list){
+        var managers = [];
+        //add employees to the list if they are a manager
+        list.forEach( (data) => { if(data.isManager) managers.push(data);  }  );
+        return managers;
+    }
     return createPromise(employees, selectManagers);
 };
-
-//Function to select managers from list
-//
-function selectManagers(list){
-    var managers = [];
-    //add employees to the list if they are a manager
-    list.forEach( (data) => { if(data.isManager) managers.push(data);  }  );
-    return managers;
-}
 
 //Function to provide the full array of department objects
 //
