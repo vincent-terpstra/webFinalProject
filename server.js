@@ -42,11 +42,13 @@ function getJSON(makePromise){
     }
 }
 
-app.get('/',            getHTML('home'));
-app.get('/about',       getHTML('about'));
-app.get('/managers',    getJSON(data.getManagers));
-app.get('/employees',   getJSON(data.getAllEmployees));
-app.get('/departments', getJSON(data.getDepartments));
+app.get('/',                getHTML('home'));
+app.get('/about',           getHTML('about'));
+app.get('/managers',        getJSON(data.getManagers));
+app.get('/employees',       getJSON(data.getAllEmployees));
+app.get('/departments',     getJSON(data.getDepartments));
+app.get('/employees/add',   getHTML('addEmployee'));
+app.get('/images/add',      getHTML('addEmployee'));
 
 // Setup 404 message if page not found
 app.use((req, res) => {
@@ -59,6 +61,6 @@ data.initialize()
     .then(()=>{app.listen(HTTP_PORT, onHttpStatus)})
     .catch((err)=>{ console.log(err) });
 
-var onHttpStatus = ()=>{
+var onHttpStatus = () =>{
     console.log("Express http server listening on: " + HTTP_PORT );
 };
