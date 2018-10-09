@@ -74,3 +74,12 @@ module.exports.getManagers = function(){
 module.exports.getDepartments = function(){
     return createPromise(departments);
 };
+
+module.exports.addEmployee = function(employeeData){
+    return new Promise(
+        (resolve, reject)=>{
+            departments.push(employeeData);
+            resolve();
+        }
+    );
+}

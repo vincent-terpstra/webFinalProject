@@ -7,8 +7,8 @@
       <meta http-equiv="X-UA-Compatible" content="ie=edge">
       <!-- Latest compiled and minified Bootstrap 3.3.7 CSS -->
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-      <link rel="stylesheet" type="text/css" href="css/site.css">
-      <title>About</title>
+      <link rel="stylesheet" type="text/css" href="../css/site.css">
+      <title>Add Employee</title>
   </head>
   <body>
     <nav class="navbar navbar-default">
@@ -42,7 +42,17 @@
       </div><!-- /.container-fluid -->
     </nav>
     <div class="container">
-      <h2>TODO: create form</h2>
+      <form onsubmit="return true;"
+            action="/employees/add" method="POST" >
+        <fieldset>
+          <legend>Personal Information</legend>
+          <label for=fName>First Name </label>
+            <input type=text name='FirstName' id='fName'>
+          <label for=lName>Last Name </label>
+            <input type=text name='LastName' id='lName'>
+        </fieldset>
+        <input type="submit" value="Add Employee"/>
+      </form>
     </div>
 
     <!-- Latest compiled and minified jQuery 3.2.1 JavaScript -->
