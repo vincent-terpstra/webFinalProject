@@ -1,5 +1,5 @@
 /*********************************************************************************
-* WEB322 – Assignment 02
+* WEB322 – Assignment 03
 * I declare that this assignment is my own work in accordance with Seneca Academic Policy. No part
 * of this assignment has been copied manually or electronically from any other source
 * (including 3rd party web sites) or distributed to other students. *
@@ -10,6 +10,7 @@
 const express = require('express');
 const app     = express();
 
+const fs      = require('fs');
 const path    = require('path');
 const data    = require('./data-server.js');
 
@@ -24,8 +25,6 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage: storage });
-//var bParser = require('body-parser');
-//    bParser.urlencoded({extended:true});
 
 // setup routes to return html files
 //
@@ -43,14 +42,14 @@ function getHTML(file){
 // Function that creates get function for a Promise which returns JSON data
 //      makePromise : function call to data-server to create a Promise
 //
-function getJSON(makePromise){
+function getJSON(makePromise, flag){
     return (req, res)=>{
         //call request for data then post to page
-        makePromise()
+        makePromise(flag)
             //return data in form of json array
             .then((data) => {res.json( data )})
             //return error in form of json message
-            .catch((err) => {res.json('{message:"'+ err +'"}');});
+            .catch((err) => {res.json(  { "message" : err });});
     }
 }
 
@@ -58,15 +57,67 @@ app.get('/',                getHTML('home'));
 app.get('/about',           getHTML('about'));
 app.get('/employees/add',   getHTML('addEmployee'));
 app.get('/images/add',      getHTML('addImage'));
-app.get('/managers',        getJSON(data.getManagers));
-app.get('/employees',       getJSON(data.getAllEmployees));
-app.get('/departments',     getJSON(data.getDepartments));
 
-app.post('/employees/add', (req, res)=>{
+app.get('/managers',        getJSON(data.getManagers));
+app.get('/departments',     getJSON(data.getDepartments));
+app.get('/employees', (req, res)=>{
+        //check status flag
+        let makePromise = data.getAllEmployees;
+        let value;
+        const query = req.query;
+        
+        switch(Object.keys(query)[0]){
+            case 'status':
+                makePromise = data.getEmployeesByStatus;
+                value = query.status;
+                break;
+            case 'department':
+                makePromise = data.getEmployeesByDepartment;
+                value = query.department;
+                break;
+            case 'manager':
+                makePromise = data.getEmployeesByManager;
+                value = query.manager;
+                break;
+        }
+
+        makePromise(value)
+            .then((data)=>{res.json(data)})
+            .catch((err)=>{res.json({"message" : err});});
+    }
+);
+app.get('/employees/:num', (req, res)=>
+    {
+    //check status flag
+    data.getEmployeeByNum(req.params.num)
+        .then((data)=>{res.json(data[0])})
+        .catch((err)=>{res.json({"message" : err});});
+    }
+);
+
+app.post('/employees/add', (req, res)=>
+    {
     data.addEmployee(req.body)
         .then( ()=>(res.redirect('/employees')))
         .catch((err)=>{ console.log(err)} );
-});
+    }
+);
+
+app.get('/images', (req, res) =>
+    {
+        return new Promise((resolve, reject) => 
+            {
+                fs.readdir('./public/images/uploaded', 
+                    (err, items)=>{ resolve({"images" : items});}
+                )
+            }
+        ).then((data)=>(res.json(data)))
+        .catch((err)=>{res.json({"message" : err});});
+    }
+)
+app.post('/images/add', upload.single("imageFile"), 
+    (req, res)=>{ res.redirect('/images')}
+);
 
 // Setup 404 message if page not found
 app.use((req, res) => {

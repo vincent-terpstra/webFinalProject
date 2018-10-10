@@ -17,13 +17,17 @@ article p:first-letter {
     font-weight:900;
 }
 
-.active a {
+li a:hover, input[type="submit"]:hover{
+    background-color:grey !important;
+    color:white !important;
+}
+
+
+
+.active a, input[type="submit"] {
     background-color: #2b4f81 !important;
     color: white !important;
 }
 
-li a:hover {
-    background-color:grey !important;
-    color:white !important;
-}
+
 
