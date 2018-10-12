@@ -43,14 +43,20 @@ function getHTML(file){
 //      makePromise : function call to data-server to create a Promise
 //
 function getJSON(makePromise, flag){
+    //return function for posting json data
     return (req, res)=>{
-        //call request for data then post to page
-        makePromise(flag)
-            //return data in form of json array
-            .then((data) => {res.json( data )})
-            //return error in form of json message
-            .catch((err) => {res.json(  { "message" : err });});
+        resolveJSON(makePromise(flag), res);      
     }
+}
+
+//Function to add then and catch to a promise to deal with JSON
+//
+function resolveJSON(promise, res){
+    promise
+        //return data in form of json array
+        .then((data) => {res.json( data )})
+        //return error in form of json message
+        .catch((err) => {res.json(  { "message" : err });});
 }
 
 app.get('/',                getHTML('home'));
@@ -80,10 +86,7 @@ app.get('/employees', (req, res)=>{
                 value = query.manager;
                 break;
         }
-
-        makePromise(value)
-            .then((data)=>{res.json(data)})
-            .catch((err)=>{res.json({"message" : err});});
+        resolveJSON(makePromise(value), res);
     }
 );
 app.get('/employees/:num', (req, res)=>
@@ -105,14 +108,11 @@ app.post('/employees/add', (req, res)=>
 
 app.get('/images', (req, res) =>
     {
-        return new Promise((resolve, reject) => 
-            {
-                fs.readdir('./public/images/uploaded', 
-                    (err, items)=>{ resolve({"images" : items});}
-                )
-            }
-        ).then((data)=>(res.json(data)))
-        .catch((err)=>{res.json({"message" : err});});
+    resolveJSON(new Promise((resolve, reject) => {
+            fs.readdir('./public/images/uploaded', 
+                (err, items)=>{ resolve({"images" : items});}
+            )
+        }), res)
     }
 )
 app.post('/images/add', upload.single("imageFile"), 
