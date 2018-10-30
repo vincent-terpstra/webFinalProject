@@ -1,0 +1,88 @@
+<div class="row">
+    <div class="col-md-12">
+    {{#if employee}}
+    {{#with employee}}
+    <h2>{{{firstName}}} {{{lastName}}} - Employee: {{{employeeNum}}}</h2>
+    <hr />
+    <form method="post" action="/employee/update">
+        <fieldset>
+        <legend>Personal Information</legend>
+        <input type=hidden class="form-control" id="employeeNum" name="employeeNum"
+            value='{{{employeeNum}}}'readonly/>
+        <div class="row">
+            {{#column 6}}
+                {{#input 'firstName' 'First Name' 'text' firstName}}{{/input}}
+            {{/column}}
+            {{#column 6}}
+                {{#input 'lastName' 'Last Name' 'text' lastName}}{{/input}}
+            {{/column}}
+        </div>
+        <div class="row">
+            {{#column 6}}
+                {{#input 'email' 'Email' 'email' email}}{{/input}}
+            {{/column}}
+            {{#column 6}}
+                {{#input 'SSN' 'Social Security Num' 'text' SSN}}{{/input}}
+            {{/column}}
+        </div>
+        <div class="row">
+            {{#column 3}}
+                {{#input 'addressStreet' 'Address (Street)' 'text' addressStreet}}{{/input}}
+            {{/column}}
+            {{#column 3}}
+                {{#input 'addressCity' 'Address (City)' 'text' addressCity}}{{/input}}
+            {{/column}}
+            {{#column 3}}
+                {{#input 'addressState' 'Address (State)' 'text' addressState}}{{/input}}
+            {{/column}}
+            {{#column 3}}
+                {{#input 'addressPostal' 'Address (Zip Code)' 'text' addressPostal}}{{/input}}
+            {{/column}}
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Company Information</legend>
+        <div class="row">
+            {{#column 3}}
+                {{#input 'isManager' 'Manager' 'checkbox' ''}}
+                    {{#if isManager}}checked{{/if}}
+                {{/input}}
+            {{/column}}
+            {{#column 3}}
+                {{#input 'employeeManagerNum' "Employee's Manager Number" 'text' employeeManagerNum}}{{/input}}
+            {{/column}}
+            {{#column 3}}
+                <label>Status:</label><br />
+                {{#radio status}}Full Time{{/radio}}
+                {{#radio status}}Part Time{{/radio}}
+            {{/column}}
+            {{#column 3}}
+                <label for="department">Department</label>
+                <select class="form-control" name="department" id="department">
+                    {{#option department 1}}Creative Services{{/option}}
+                    {{#option department 2}}Product Development{{/option}}
+                    {{#option department 3}}Marketing{{/option}}
+                    {{#option department 4}}Strategic Planning{{/option}}
+                    {{#option department 5}}Accounting{{/option}}
+                    {{#option department 6}}Human Resources{{/option}}
+                    {{#option department 7}}Quality Analysis{{/option}}
+                </select>
+            {{/column}}
+        </div>
+        <div class="row">
+            {{#column 12}}
+                {{#input 'hireDate' 'Hire Date' 'text' hireDate}}readonly{{/input}}
+            {{/column}}
+        </div>
+
+    </fieldset>
+
+    <hr />
+    <input type="submit" class="btn btn-primary pull-right" value="Update Employee" /><br /><br /><br />
+    </form>
+    {{/with}}
+    {{else}}
+        <strong>{{message}}</strong>
+    {{/if}}
+    </div>
+</div>

@@ -80,9 +80,36 @@ module.exports = {
     //Function to get employee with the number
     //
     getEmployeeByNum(num){
-        return createPromise(employees, "employeeNum", num);
+        return employee(num, (emp)=>{return emp});
+    },
+
+    //Function to return a promise which updates an employee based on data
+    //
+    updateEmployee(data){
+        return employee(data.employeeNum, (emp)=>{
+            Object.assign(emp, data);
+            emp['isManager'] = data.hasOwnProperty('isManager');
+        });
     }
 } //END module.exports
+function employee(num, funct){
+    return new Promise(
+        (resolve, reject)=>{
+            let emp;
+            for(let i=0; i < employees.length; i++){
+                if(employees[i].employeeNum == num){
+                    emp = employees[i];
+                    break;
+                }
+            }
+            if(emp != undefined){
+                resolve(funct(emp));
+            } else {
+                reject('Employee not Found');
+            }
+        }
+    )
+}
 
 // Function to create a promise object
 //      inputs : 
@@ -91,17 +118,17 @@ module.exports = {
 //      outputs :
 //          new Promise
 //
-function createPromise(array, key, value)
+function createPromise(array, key = 0, value = 0 )
 {
     return new Promise(
         (resolve, reject) => {
-            if(arguments.length == 3){
+            if(key != 0){
                 array = array.filter( (data)=>{ return data[key] == value});
             }
             if(array.length == 0) 
-                reject("no results")
+                reject('no results')
             else
                 resolve(array);
         }
-    )
-};
+    );
+}

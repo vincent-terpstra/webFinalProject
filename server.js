@@ -1,9 +1,9 @@
 /*********************************************************************************
-* WEB322 – Assignment 03
+* WEB322 – Assignment 04
 * I declare that this assignment is my own work in accordance with Seneca Academic Policy. No part
 * of this assignment has been copied manually or electronically from any other source
 * (including 3rd party web sites) or distributed to other students. *
-* Name: _Vincent Terpstra_ Student ID: _140665175_ Date: _Oct 12 2018_ *
+* Name: _Vincent Terpstra_ Student ID: _140665175_ Date: _Oct 29 2018_ *
 * Online (Heroku) Link: _https://pacific-forest-24614.herokuapp.com/_
 * ********************************************************************************/
 
@@ -14,9 +14,11 @@ const fs      = require('fs');
 const path    = require('path');
 const data    = require('./data-server.js');
 
+//Setup Body Parser for uploading forms (add employee)
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true }));
 
+//Set up multer for multidata forms ( images )
 const multer = require('multer');
 const storage = multer.diskStorage({
     destination: "./public/images/uploaded",
@@ -26,52 +28,99 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// setup routes to return html files
-//
+//Setup Handlebars fo templating
+const exphbs = require("express-handlebars");
+app.engine('.hbs',
+    exphbs({
+        extname: '.hbs', 
+        defaultLayout: 'main',
+        helpers: {
+            navLink: function(url, options){
+                return '<li' +
+                    ((url == app.locals.activeRoute) ? ' class="active" ' : '') +
+                    '><a href="' + url + '">' + options.fn(this) + '</a></li>';
+            },
+            radio: function(empstatus, options){
+                let id = options.fn(this);
+                return '<label class="checkbox-inline">' +
+                            '<input type="radio" id="'+ id +
+                            '" name="status" value="'+ id +'"' +
+                            (id == empstatus ? 'checked' : '') +' />'+ id + 
+                        '</label>';
+            },
+            option: function(empstatus, idx,  options){
+                return '<option value="' + idx + '" '+ 
+                    (idx == empstatus ? 'selected' : '')
+                    +'>'+options.fn(this)+'</option>';
+            },
+            with: function(context, options){
+                return options.fn(context);
+            },
+            column : function(size, options){
+                return'<div class="col-md-'+ size +'"><div class="form-group">'+
+                    options.fn(this) +'</div></div>';
+            },
+            input : function(id, label, type, value, option){
+                return '<label for="'+ id +'">'+ label +':</label>'+
+                    '<input class="form-control" id="'+ id + 
+                    '" name="'+ id +'" type="'+type +
+                    '" value="'+ (value == null ? '' : value) +'" ' + option.fn(this) +' />';
+            }
+        }
+    })
+);
+app.set('view engine', '.hbs');
+
 app.use(express.static('./public/'));
 
-// Function to creates get function for HTML file
-//      file: name of html file
-//
-function getHTML(file){
-    return (req, res) =>{
-        res.sendFile(path.join(__dirname, '/views/'+ file +'.html'))
-    }
-}
+//Setup route to fix active link in hbs
+app.use(function(req,res,next){
+    let route = req.baseUrl + req.path;
+    app.locals.activeRoute = (route == "/") ? "/" : route.replace(/\/$/, "");
+    next();
+});
 
-// Function that creates get function for a Promise which returns JSON data
-//      makePromise : function call to data-server to create a Promise
-//
-function getJSON(makePromise, flag){
-    //return function for posting json data
+// Function that creates get function for a handlebars file
+//      file : name of the file
+function getHBS(file, title = "My App"){
     return (req, res)=>{
-        resolveJSON(makePromise(flag), res);      
+        res.render(file, {'title': title});
     }
 }
 
-//Function to add then and catch to a promise to deal with JSON
+// setup routes
 //
-function resolveJSON(promise, res){
-    promise
-        //return data in form of json array
-        .then((data) => {res.json( data )})
-        //return error in form of json message
-        .catch((err) => {res.json(  { "message" : err });});
+app.get('/',                getHBS('home', 'Home'));
+app.get('/about',           getHBS('about', 'About'));
+app.get('/employees/add',   getHBS('addEmployee', 'Add Employee'));
+app.get('/images/add',      getHBS('addImage', 'Add Image'));
+
+//Function which sets up .then and .catch for a query promise
+//
+function responseHBS(promise, res, page, title){
+    let json = {title: title}
+    promise.then((data)=>{
+        json[page] = data;
+        res.render(page, json);
+    }).catch((err)=>{
+        json['message'] = err;
+        res.render(page, json);
+    })
 }
 
-app.get('/',                getHTML('home'));
-app.get('/about',           getHTML('about'));
-app.get('/employees/add',   getHTML('addEmployee'));
-app.get('/images/add',      getHTML('addImage'));
-
-app.get('/managers',        getJSON(data.getManagers));
-app.get('/departments',     getJSON(data.getDepartments));
+//app.get('/managers',        getJSON(data.getManagers));
+app.get('/departments',
+    (req, res)=>{
+        responseHBS(data.getDepartments(), res, 'departments', 'Departments');
+    }
+);
 app.get('/employees', (req, res)=>{
-        //check status flag
+        
         let makePromise = data.getAllEmployees;
         let value;
         const query = req.query;
         
+        //check status flag
         switch(Object.keys(query)[0]){
             case 'status':
                 makePromise = data.getEmployeesByStatus;
@@ -86,15 +135,13 @@ app.get('/employees', (req, res)=>{
                 value = query.manager;
                 break;
         }
-        resolveJSON(makePromise(value), res);
+        responseHBS(makePromise(value), res, 'employees', 'Employees');
     }
 );
-app.get('/employees/:num', (req, res)=>
-    {
-    //check status flag
-    data.getEmployeeByNum(req.params.num)
-        .then((data)=>{res.json(data[0])})
-        .catch((err)=>{res.json({"message" : err});});
+
+app.get('/employees/:num', 
+    (req, res)=>{   
+        responseHBS(data.getEmployeeByNum(req.params.num), res, 'employee', 'Modify Employee')
     }
 );
 
@@ -106,15 +153,22 @@ app.post('/employees/add', (req, res)=>
     }
 );
 
-app.get('/images', (req, res) =>
-    {
-    resolveJSON(new Promise((resolve, reject) => {
+app.post("/employee/update", (req, res) => {
+    data.updateEmployee(req.body)
+        .then( ()=>{res.redirect("/employees");})
+        .catch(()=>{res.redirect("/employees")});
+});
+
+app.get('/images', 
+    (req, res) => {
+        return new Promise((resolve, reject)=>{
             fs.readdir('./public/images/uploaded', 
-                (err, items)=>{ resolve({"images" : items});}
+                (err, items)=>{ resolve({"title": 'Images', "images" : items});}
             )
-        }), res)
+        }).then((data)=>{res.render('images', data)});
     }
-)
+);
+
 app.post('/images/add', upload.single("imageFile"), 
     (req, res)=>{ res.redirect('/images')}
 );

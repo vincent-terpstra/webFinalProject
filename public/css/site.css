@@ -22,12 +22,7 @@ li a:hover, input[type="submit"]:hover{
     color:white !important;
 }
 
-
-
 .active a, input[type="submit"] {
     background-color: #2b4f81 !important;
     color: white !important;
 }
-
-
-
