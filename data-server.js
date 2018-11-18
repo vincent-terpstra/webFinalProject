@@ -106,7 +106,7 @@ module.exports = {
     //Function to provide the full array of department objects
     //
     getDepartments(){
-        return createPromise(departments);
+        return createPostgres(Department);
     },
 
     //Function to get all employees with either "Full Time" or "Part Time" as status
@@ -160,7 +160,20 @@ function employee(num, funct){
         }
     )
 }
-
+// Function to create a postgres promise
+function createPostgres(table){
+    return new Promise(
+        (resolve, reject)=>{
+        sequelize.sync().then(
+            ()=>{
+                table.findAll({
+                    
+                }).then((data)=>{ resolve(data)})
+                .catch((err)=>{ reject('no results returned');})
+            })
+        }
+    )
+}
 // Function to create a promise object
 //      inputs : 
 //          array : request to be formated
