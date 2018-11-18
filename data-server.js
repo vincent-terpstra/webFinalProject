@@ -169,7 +169,7 @@ function createPostgres(table){
                 table.findAll({
                     
                 }).then((data)=>{ resolve(data)
-                    if(data.length == 0){ reject('no results returned')
+                    if(data.length() == 0){ reject('no results returned')
                     } else { resolve(data); }
                 })
                 .catch((err)=>{ reject('no results returned');})
