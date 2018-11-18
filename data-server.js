@@ -1,3 +1,51 @@
+const Sequelize = require('sequelize');
+var sequelize = new Sequelize(
+    'd7hmhs95b4hmkv',
+    'lcdfaftgslific',
+    '5d541202b4b84aeceeccf6fffa9a5c0ac0ad4d6b70a4e1e173a21e0feffea3eb',
+    {
+        host: 'ec2-54-83-8-246.compute-1.amazonaws.com',
+        dialect: 'postgres',
+        port: '5432',
+        dialectOptions: {
+            ssl: true
+        }
+    }
+);
+//define a departments table
+const Employee = sequelize.define('employee', {
+        employeeNum : {
+            type: Sequelize.INTEGER,
+            primaryKey : true,
+            autoIncrement: true },
+        firstName   : Sequelize.STRING,
+        lastName    : Sequelize.STRING,
+        email       : Sequelize.STRING,
+        SSN         : Sequelize.STRING,
+        addressStreet   : Sequelize.STRING,
+        addressCity     : Sequelize.STRING,
+        addressState    : Sequelize.STRING,
+        addressPostal   : Sequelize.STRING,
+        maritalStatus   : Sequelize.STRING,
+        isManager       : Sequelize.BOOLEAN,
+        employeeManagerNum : Sequelize.STRING,
+        status      : Sequelize.STRING,
+        hireDate    : Sequelize.STRING
+    }
+);
+//define a departments table
+const Department = sequelize.define('department', {
+        departmentId : {
+            type: Sequelize.INTEGER,
+            primaryKey : true,
+            autoIncrement: true },
+        departmentName : Sequelize.STRING
+    }
+);
+
+//Setup the has Many relationship
+Department.hasMany(Employee, {foreignKey: 'department'});
+
 const fs   = require('fs');
 const path = require('path');
 //Global arrays to contain employee and department data
@@ -23,7 +71,9 @@ module.exports = {
             (resolve, reject) => {
                 employees   = readFile('employees', reject);
                 departments = readFile('departments', reject);
-                resolve();
+                sequelize.sync()
+                    .then(resolve())
+                    .catch(reject("unable to sync the database"))
             }
         );
     },
