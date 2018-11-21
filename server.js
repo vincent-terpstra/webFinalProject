@@ -102,22 +102,21 @@ app.get( '/departments/add', getHBS('addDepartment', "Add Department"));
 app.post('/departments/add', (req, res)=>{
     data.addDepartment(req.body)
         .then( ()=>(res.redirect('/departments')))
-        .catch((err)=>{ console.log(err)} );
+        .catch(()=>{ res.status(500).send("Unable to Add Department")});
     }
 );
+
 app.post("/department/update", (req, res) => {
-    let redirect = ()=>res.redirect("/departments");
     data.updateDepartment(req.body)
-        .then( redirect )
-        .catch( redirect );
+        .then( ()=>{res.redirect("/departments")})
+        .catch(()=>{res.status(500).send("Unable to Update Department")} );
 });
 
 app.get('/department/:departmentId',
     (req, res)=>{
-        let json = {title: 'Modify Department'}
         data.getDepartmentById(req.params.departmentId)
-            .catch(res.status(404).send("Department Not Found"))
-            .then( res.render('department', json));
+            .then((dept)=> {res.render('department', {title:'Modify Department', department: dept})})
+            .catch(()=>{res.status(404).send("Department Not Found")});
 });
 
 app.get('/departments/delete/:departmentId', (req, res)=>{
@@ -171,19 +170,18 @@ app.get('/employees/add',
         });
     }
 );
-app.post('/employees/add', (req, res)=>
-    {
+
+app.post('/employees/add', (req, res)=>{
     data.addEmployee(req.body)
         .then( ()=>(res.redirect('/employees')))
-        .catch((err)=>{ console.log(err)} );
+        .catch((err)=>{ res.status(500).send("Unable to add Employee")} );
     }
 );
 
 app.post("/employee/update", (req, res) => {
-    let redirect = ()=> res.redirect("/employees")
     data.updateEmployee(req.body)
-        .then( redirect)
-        .catch(redirect );
+        .then(()=>{ res.redirect("/employees")})
+        .catch(()=>{res.status(500).send("Unable to Update Employee")});
 });
 
 app.get('/employees/delete/:empNum', (req, res)=>{
