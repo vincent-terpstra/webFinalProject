@@ -10,13 +10,19 @@
             <th>Department Name</th>
         </tr>
         </thead>
-        {{#each departments}}
-        <tr>
-            <td><a href='employees?department={{departmentId}}'>{{departmentId}}</a></td>
-            <td><a href='employees?department={{departmentId}}'>{{departmentName}}</a></td>
-        </tr>
-        {{/each}}
+        {{#if departments}}
+            {{#each departments}}
+            <tr>
+                <td><a href='employees?department={{departmentId}}'>{{departmentId}}</a></td>
+                <td><a href='/department/{{departmentId}}'>{{departmentName}}</a></td>
+                <td><a href='/departments/delete/{{departmentId}}' class="btn btn-success pull-right delete">Delete</a></td>
+            </tr>
+            {{/each}}
+        {{else}}
+        <tr><td><strong>{{message}}</strong></td></tr>
+        {{/if}}
     </table>
     </div>
+    <a href="/departments/add" class="btn btn-success pull-right">Add New Department</a>
     </div>
 </div>

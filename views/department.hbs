@@ -1,0 +1,29 @@
+<div class="row">
+    <div class="col-md-12">
+    {{#if department}}
+    {{#with department}}
+    <h2>{{{departmentName}}} - Department: {{{departmentId}}}</h2>
+    <hr />
+    <form method="post" action="/department/update">
+    <fieldset>
+    <legend>Personal Information</legend>
+    <input type=hidden class="form-control" id="departmentId" name="departmentId"
+        value='{{{departmentId}}}'readonly/>
+        <div class="row">
+            {{#column 12}}
+                {{#input 'departmentName' 'Department Name' 'text' departmentName}}{{/input}}
+            {{/column}}
+            
+        </div>
+
+    </fieldset>
+
+    <hr />
+    <input type="submit" class="btn btn-primary pull-right" value="Update Department" /><br /><br /><br />
+    </form>
+    {{/with}}
+    {{else}}
+        <strong>{{message}}</strong>
+    {{/if}}
+    </div>
+</div>

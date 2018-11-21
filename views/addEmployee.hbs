@@ -84,22 +84,22 @@
                         <input type="radio" id="statusFT" name="status" value="Full Time" /> Full Time
                     </label>
                     <label class="checkbox-inline">
-                        <input type="radio" id="statusFT" name="status" value="Part Time" /> Part Time
+                        <input type="radio" id="statusFT" name="status" value="Part Time" checked /> Part Time
                     </label>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="form-group">
                     <label for="department">Department</label>
+                        {{#if departments}}
                         <select class="form-control" name="department" id="department">
-                            <option value="1">Creative Services</option>
-                            <option value="2">Product Development</option>
-                            <option value="3">Marketing</option>
-                            <option value="4">Strategic Planning</option>
-                            <option value="5">Accounting</option>
-                            <option value="6">Human Resources</option>
-                            <option value="7">Quality Analysis</option>
-                    </select>
+                        {{#each departments}}
+                            {{#option 0 departmentId}}{{departmentName}}{{/option}}
+                        {{/each}}
+                        </select>
+                        {{else}}
+                            {{strong}}<div>No Departments</div>{{strong}}
+                        {{/if}}
                 </div>
             </div>
         </div>
@@ -107,7 +107,7 @@
             <div class="col-md-12">
                 <div class="form-group">
                     <label for="hireDate">Hire Date</label>
-                    <input class="form-control" id="hireDate" name="hireDate" type="date" />
+                    <input class="form-control" id="hireDate" name="hireDate" type="date" value="2018-01-01"/>
                 </div>
             </div>
         </div>

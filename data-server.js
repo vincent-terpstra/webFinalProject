@@ -42,159 +42,137 @@ const Department = sequelize.define('department', {
         departmentName : Sequelize.STRING
     }
 );
+Employee['name'] = "Employee";
+Employee['key']  = 'employeeNum';
+Department['name'] = 'Department';
+Department['key']  = 'departmentId';
 
 //Setup the has Many relationship
 Department.hasMany(Employee, {foreignKey: 'department'});
 
-const fs   = require('fs');
-const path = require('path');
-//Global arrays to contain employee and department data
-//
-let employees   = [];
-let departments = [];
-
-//Blocking Helper function to load a array
-//      inputs: file : name of .json file
-//          reject : Promise reject function
-function readFile(file, reject){
-    try {
-        return  JSON.parse( fs.readFileSync(path.join(__dirname, '/data/'+ file +'.json'), 'utf8'));
-    } catch (err){
-        reject("unable to read file: "+ file);
-    }
-}
-
 module.exports = {
     //Blocking function to load elements into JSON arrays
     initialize(){
-        return new Promise(
-            (resolve, reject) => {
-                employees   = readFile('employees', reject);
-                departments = readFile('departments', reject);
-                sequelize.sync()
-                    .then(resolve())
-                    .catch(reject("unable to sync the database"))
-            }
-        );
+        return sequelize.sync()
+            .catch((err)=>{throw "unable to sync the database";});
     },
 
-    //Function to add an employee to the database
+    //Function to add a Department to the Database
     //
-    addEmployee(employeeData){
-        return new Promise(
-            (resolve, reject)=>{
-                employeeData['employeeNum'] = employees.length + 1;
-                employeeData['isManager']   = employeeData.hasOwnProperty('isManager');
-                employees.push(employeeData);
-                resolve();
-            }
-        );
-    },
-
-    //Function to provide the full array of employee objects
-    //
-    getAllEmployees(){
-        return createPromise(employees);
-    },
-
-    //Function to provide the employees which are managers
-    //
-    getManagers(){
-        return createPromise(employees, "isManager", true);
+    addDepartment(departmentData){
+        return insertValues(Department, departmentData);
     },
 
     //Function to provide the full array of department objects
     //
     getDepartments(){
-        return createPostgres(Department);
+        return createPromise(Department);
+    },
+    
+    //Function to get a single Department
+    //
+    getDepartmentById(id){
+        return createPromise(Department, 'departmentId', id)
+            .then((data)=>{return data[0];});
     },
 
-    //Function to get all employees with either "Full Time" or "Part Time" as status
+    //Function to update a Department in the Database
     //
-    getEmployeesByStatus(status){
-        return createPromise(employees, "status", status);
+    updateDepartment(departmentData){
+        return updateValues(Department, departmentData);
     },
 
-    //Function to get all employees in the department
-    //
-    getEmployeesByDepartment(department){
-        return createPromise(employees, "department", department);
+    deleteDepartmentById(id){
+        return deleteValues(Department,  id);
     },
 
-    //Function to get all employees in the department
+    //Function to add an employee to the database
     //
-    getEmployeesByManager(manager){
-        return createPromise(employees, "employeeManagerNum", manager);
+    addEmployee(employeeData){
+        employeeData.isManager = employeeData.hasOwnProperty('isManager');
+        return insertValues(Employee, employeeData);
+    },
+
+    //Function to provide the full array of employee objects
+    //
+    getAllEmployees(){
+        return createPromise(Employee);
     },
 
     //Function to get employee with the number
     //
     getEmployeeByNum(num){
-        return employee(num, (emp)=>{return emp});
+        return createPromise(Employee, 'employeeNum', num)
+            .then((data)=>{return data[0]});
+    },
+
+    //Function to provide the employees which are managers
+    //
+    getManagers(){
+        return createPromise(Employee, "isManager", true);
+    },
+
+    //Function to get all employees with either "Full Time" or "Part Time" as status
+    //
+    getEmployeesByStatus(status){
+        return createPromise(Employee, "status", status);
+    },
+
+    //Function to get all employees in the department
+    //
+    getEmployeesByDepartment(department){
+        return createPromise(Employee, "department", department);
+    },
+
+    //Function to get all employees in the department
+    //
+    getEmployeesByManager(manager){
+        return createPromise(Employee, "employeeManagerNum", manager);
     },
 
     //Function to return a promise which updates an employee based on data
     //
-    updateEmployee(data){
-        return employee(data.employeeNum, (emp)=>{
-            Object.assign(emp, data);
-            emp['isManager'] = data.hasOwnProperty('isManager');
-        });
+    updateEmployee(employeeData){
+        employeeData.isManager = employeeData.hasOwnProperty('isManager');
+        return updateValues(Employee, employeeData);
+    },
+
+    deleteEmployeeByNum(empNum){
+        return deleteValues(Employee, empNum);
     }
 } //END module.exports
-function employee(num, funct){
-    return new Promise(
-        (resolve, reject)=>{
-            let emp;
-            for(let i=0; i < employees.length; i++){
-                if(employees[i].employeeNum == num){
-                    emp = employees[i];
-                    break;
-                }
-            }
-            if(emp != undefined){
-                resolve(funct(emp));
-            } else {
-                reject('Employee not Found');
-            }
-        }
-    )
+//Insert values into a table
+function insertValues (table, data){
+    for(const key in data)
+        if(data[key] == "") data[key] = null;
+    return table.create(data)
+        .catch(()=>{ throw "Unable to Insert Values into " + table.name });
 }
-// Function to create a postgres promise
-function createPostgres(table){
-    return new Promise(
-        (resolve, reject)=>{
-        sequelize.sync().then(
-            ()=>{
-                table.findAll({
-                    
-                }).then((data)=>{ resolve(data)
-                    if(data.length() == 0){ reject('no results returned')
-                    } else { resolve(data); }
-                })
-                .catch((err)=>{ reject('no results returned');})
-            })
-        }
-    )
+
+//Update values in a table
+function updateValues (table, data){
+    for(const key in data)
+        if(data[key] == "") data[key] = null;
+    return table.update(data, {where: {[table.key]: data[table.key]}})
+        .catch(()=>{ throw "Unable to Update " + table.name });
 }
-// Function to create a promise object
+//Delete values in a table
+function deleteValues(table, value){
+    return table.destroy({where: {[table.key] : value}})
+        .catch(()=>{throw "Unable to Delete Value"});
+}
+
+// Function to create a postgres promise object
 //      inputs : 
 //          array : request to be formated
-//          key : value : will filter the employees list to only return those with those pairs
+//          key : value : will filter the table  to only return those with those pairs
 //      outputs :
 //          new Promise
-//
-function createPromise(array, key = 0, value = 0 )
-{
-    return new Promise(
-        (resolve, reject) => {
-            if(key != 0){
-                array = array.filter( (data)=>{ return data[key] == value});
-            }
-            if(array.length == 0) 
-                reject('no results')
-            else
-                resolve(array);
-        }
-    );
+
+function createPromise(table, key = 0, value){
+        return table.findAll((key == 0 ? {} : {where: {[key]: value}}))
+        .then((data)=>{
+            if(data.length == 0) throw 'No results returned'
+            return data;
+        });
 }

@@ -56,22 +56,23 @@
                 {{#radio status}}Full Time{{/radio}}
                 {{#radio status}}Part Time{{/radio}}
             {{/column}}
+    {{/with}}
             {{#column 3}}
                 <label for="department">Department</label>
-                <select class="form-control" name="department" id="department">
-                    {{#option department 1}}Creative Services{{/option}}
-                    {{#option department 2}}Product Development{{/option}}
-                    {{#option department 3}}Marketing{{/option}}
-                    {{#option department 4}}Strategic Planning{{/option}}
-                    {{#option department 5}}Accounting{{/option}}
-                    {{#option department 6}}Human Resources{{/option}}
-                    {{#option department 7}}Quality Analysis{{/option}}
-                </select>
+                {{#if departments}}
+                    <select class="form-control" name="department" id="department">
+                {{#each departments}}
+                    {{#option ../employee.department departmentId  }}{{departmentName}}{{/option}}
+                {{/each}}
+                    </select>
+                {{else}}
+                    {{strong}}No Departments{{strong}}
+                {{/if}}
             {{/column}}
         </div>
         <div class="row">
             {{#column 12}}
-                {{#input 'hireDate' 'Hire Date' 'text' hireDate}}readonly{{/input}}
+                {{#input 'hireDate' 'Hire Date' 'text' employee.hireDate}}readonly{{/input}}
             {{/column}}
         </div>
 
@@ -80,7 +81,7 @@
     <hr />
     <input type="submit" class="btn btn-primary pull-right" value="Update Employee" /><br /><br /><br />
     </form>
-    {{/with}}
+    
     {{else}}
         <strong>{{message}}</strong>
     {{/if}}

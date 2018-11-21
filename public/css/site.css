@@ -17,12 +17,19 @@ article p:first-letter {
     font-weight:900;
 }
 
-li a:hover, input[type="submit"]:hover{
+.active a, input[type="submit"], .btn {
+    border-color: #2b4f81 !important;
+    background-color: #2b4f81 !important;
+    color: white !important;
+}
+
+.delete {
+    border-color:#882233 !important;
+    background-color:#882233 !important;
+}
+
+li a:hover, input[type="submit"]:hover, .btn:hover{
     background-color:grey !important;
     color:white !important;
 }
 
-.active a, input[type="submit"] {
-    background-color: #2b4f81 !important;
-    color: white !important;
-}

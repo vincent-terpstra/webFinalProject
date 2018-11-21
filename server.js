@@ -92,59 +92,85 @@ function getHBS(file, title = "My App"){
 //
 app.get('/',                getHBS('home', 'Home'));
 app.get('/about',           getHBS('about', 'About'));
-app.get('/employees/add',   getHBS('addEmployee', 'Add Employee'));
-app.get('/images/add',      getHBS('addImage', 'Add Image'));
 
-//Function which sets up .then and .catch for a query promise
-//
-function responseHBS(promise, res, page, title){
-    let json = {title: title}
-    promise.then((data)=>{
-        json[page] = data;
-        res.render(page, json);
-    }).catch((err)=>{
-        json['message'] = err;
-        res.render(page, json);
-    })
-}
-
-//app.get('/managers',        getJSON(data.getManagers));
 app.get('/departments',
     (req, res)=>{
         responseHBS(data.getDepartments(), res, 'departments', 'Departments');
     }
 );
+app.get( '/departments/add', getHBS('addDepartment', "Add Department"));
+app.post('/departments/add', (req, res)=>{
+    data.addDepartment(req.body)
+        .then( ()=>(res.redirect('/departments')))
+        .catch((err)=>{ console.log(err)} );
+    }
+);
+app.post("/department/update", (req, res) => {
+    let redirect = ()=>res.redirect("/departments");
+    data.updateDepartment(req.body)
+        .then( redirect )
+        .catch( redirect );
+});
+
+app.get('/department/:departmentId',
+    (req, res)=>{
+        let json = {title: 'Modify Department'}
+        data.getDepartmentById(req.params.departmentId)
+            .catch(res.status(404).send("Department Not Found"))
+            .then( res.render('department', json));
+});
+
+app.get('/departments/delete/:departmentId', (req, res)=>{
+    data.deleteDepartmentById(req.params.departmentId)
+        .then(()=>{res.redirect('/departments')})
+        .catch(()=>{res.status(500).send("Unable to Remove Department / Department not found")});
+});
+//Function which sets up .then and .catch for a query promise
+//
+function responseHBS(promise, res, page, title){
+    promise.then((data)=>{
+        res.render(page, {title:title, [page]: data});
+    }).catch((err)=>{
+        res.render(page, {title: title, 'message': err})
+    })
+}
+
+//app.get('/managers',        getJSON(data.getManagers));
+
 app.get('/employees', (req, res)=>{
-        
-        let makePromise = data.getAllEmployees;
-        let value;
-        const query = req.query;
-        
-        //check status flag
-        switch(Object.keys(query)[0]){
-            case 'status':
-                makePromise = data.getEmployeesByStatus;
-                value = query.status;
-                break;
-            case 'department':
-                makePromise = data.getEmployeesByDepartment;
-                value = query.department;
-                break;
-            case 'manager':
-                makePromise = data.getEmployeesByManager;
-                value = query.manager;
-                break;
+        const functs = {
+            status : data.getEmployeesByStatus,
+            department : data.getEmployeesByDepartment,
+            manager : data.getEmployeesByManager
         }
-        responseHBS(makePromise(value), res, 'employees', 'Employees');
+        let str = Object.keys(req.query)[0];
+        let makePromise = functs[str];
+        if(makePromise == undefined) makePromise = data.getAllEmployees;
+        
+        responseHBS(makePromise(req.query[str]), res, 'employees', 'Employees');
     }
 );
 
-app.get('/employees/:num', 
-    (req, res)=>{   
-        responseHBS(data.getEmployeeByNum(req.params.num), res, 'employee', 'Modify Employee')
+app.get('/employee/:empNum', 
+    (req, res)=>{
+        let json = {title: 'Modify Employee'};
+        data.getEmployeeByNum(req.params.empNum)
+            .then((emp)=>{ json['employee'] = emp;})
+            .catch(()=>{res.status(404).send("Employee Not Found")})
+            .then(data.getDepartments)
+            .then((dept) =>{json['departments'] = dept;})
+            .then(()=> {res.render('employee', json);})
+            
     }
 );
 
+app.get('/employees/add', 
+    (req, res)=>{
+        data.getDepartments().then((data)=>{
+            res.render('addEmployee', {title: 'Add Employee', departments: data});
+        });
+    }
+);
 app.post('/employees/add', (req, res)=>
     {
     data.addEmployee(req.body)
@@ -154,21 +180,29 @@ app.post('/employees/add', (req, res)=>
 );
 
 app.post("/employee/update", (req, res) => {
+    let redirect = ()=> res.redirect("/employees")
     data.updateEmployee(req.body)
-        .then( ()=>{res.redirect("/employees");})
-        .catch(()=>{res.redirect("/employees")});
+        .then( redirect)
+        .catch(redirect );
+});
+
+app.get('/employees/delete/:empNum', (req, res)=>{
+    data.deleteEmployeeByNum(req.params.empNum)
+        .then(()=>{res.redirect('/employees')})
+        .catch(()=>{res.status(500).send("Unable to Remove Employee / Employee not found")});
 });
 
 app.get('/images', 
     (req, res) => {
         return new Promise((resolve, reject)=>{
             fs.readdir('./public/images/uploaded', 
-                (err, items)=>{ resolve({"title": 'Images', "images" : items});}
+                (err, items)=>{ resolve({title: 'Images', images : items});}
             )
         }).then((data)=>{res.render('images', data)});
     }
 );
 
+app.get('/images/add',      getHBS('addImage', 'Add Image'));
 app.post('/images/add', upload.single("imageFile"), 
     (req, res)=>{ res.redirect('/images')}
 );
